@@ -404,6 +404,13 @@ $uploaded_media = Twitter::uploadMedia([
     'media_id' => $init_media->media_id_string
 ]);
 
+
+// Finalize the video upload
+$final_media = Twitter::uploadMedia([
+    'command' => 'FINALIZE',
+    'media_id' => $init_media->media_id_string,
+]);
+
 // After a video has been uploaded it can take Twitter some time to process it before 
 // it can be used in a Tweet. A better approach than the one below would be to use a
 // queue (e.g. Redis), but this demonstrates the logic.
@@ -447,7 +454,7 @@ $post_response = Twitter::postTweet([
     'status' => $text,
     'media_ids' => $final_media->media_id_string
 ]);
-   
+
             
 ```
 
