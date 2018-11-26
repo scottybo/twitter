@@ -1,37 +1,37 @@
 # Twitter
 
+This is a forked version of thujon/twitter, with the initial goal of adding support for video media uploads.
+
 Twitter API for Laravel 4/5
 
 You need to create an application and create your access token in the [Application Management](https://apps.twitter.com/).
 
-[![Build Status](https://travis-ci.org/thujohn/twitter.png?branch=master)](https://travis-ci.org/thujohn/twitter)
-
 
 ## Installation
 
-Add `thujohn/twitter` to `composer.json`.
+Add `scottybo/twitter` to `composer.json`.
 ```
-"thujohn/twitter": "~2.0"
+"scottybo/twitter": "~2.0"
 ```
 
 Run `composer update` to pull down the latest version of Twitter.
 
 Or run
 ```
-composer require thujohn/twitter
+composer require scottybo/twitter
 ```
 
 Now open up `/config/app.php` and add the service provider to your `providers` array.
 ```php
 'providers' => [
-	Thujohn\Twitter\TwitterServiceProvider::class,
+	Scottybo\Twitter\TwitterServiceProvider::class,
 ]
 ```
 
 Now add the alias.
 ```php
 'aliases' => [
-	'Twitter' => Thujohn\Twitter\Facades\Twitter::class,
+	'Twitter' => Scottybo\Twitter\Facades\Twitter::class,
 ]
 ```
 
@@ -40,7 +40,7 @@ Now add the alias.
 
 The package now requires PHP >= 5.4.0
 
-Facade has changed (Thujohn\Twitter\Facades\Twitter)
+Facade has changed (Scottybo\Twitter\Facades\Twitter)
 
 Config file has been updated (debug, UPLOAD_URL, ACCESS_TOKEN_URL, REQUEST_TOKEN_URL)
 
@@ -51,16 +51,16 @@ set_new_config() has been renamed reconfig()
 
 ### Laravel 4
 
-Run `php artisan config:publish thujohn/twitter` and modify the config file with your own informations.
+Run `php artisan config:publish scottybo/twitter` and modify the config file with your own informations.
 ```
-/app/config/packages/thujohn/twitter/config.php
+/app/config/packages/scottybo/twitter/config.php
 ```
 Also, make sure to remove the env in the config file and replace it with your information.
 
 
 ### Laravel 5
 
-Run `php artisan vendor:publish --provider="Thujohn\Twitter\TwitterServiceProvider"` and modify the config file with your own information.
+Run `php artisan vendor:publish --provider="Scottybo\Twitter\TwitterServiceProvider"` and modify the config file with your own information.
 ```
 /config/ttwitter.php
 ```
@@ -169,7 +169,8 @@ format : object|json|array (default:object)
 
 ### Media
 
-* `uploadMedia()` - Upload media (images) to Twitter, to use in a Tweet or Twitter-hosted Card.
+* `uploadMedia()` - Upload media (images and video) to Twitter, to use in a Tweet or Twitter-hosted Card.
+* `uploadStatus()` - Get the status of a video uploaded to Twitter
 
 ### Search
 
@@ -247,7 +248,7 @@ Returns a collection of the most recent Tweets posted by the user indicated by t
 ```php
 Route::get('/userTimeline', function()
 {
-	return Twitter::getUserTimeline(['screen_name' => 'thujohn', 'count' => 20, 'format' => 'json']);
+	return Twitter::getUserTimeline(['screen_name' => 'scottybo', 'count' => 20, 'format' => 'json']);
 });
 ```
 
@@ -375,6 +376,79 @@ Route::get('twitter/logout', ['as' => 'twitter.logout', function(){
 	Session::forget('access_token');
 	return Redirect::to('/')->with('flash_notice', 'You\'ve successfully logged out!');
 }]);
+```
+
+
+## Uploading videos
+
+```php
+
+$file_size = 'FILE_SIZE_IN_BYTES';
+
+// Initialize the media upload - no files are sent at this point
+// https://developer.twitter.com/en/docs/media/upload-media/api-reference/post-media-upload-init#parameters
+$init_media = Twitter::uploadMedia([
+    'command' => 'INIT',
+    'media_type' => 'video/mp4',
+    'media_category' => 'tweet_video',
+    'total_bytes' => $file_size,
+    'additional_owners' => null
+]);
+
+// Upload the first (or only) chunk
+// https://developer.twitter.com/en/docs/media/upload-media/uploading-media/chunked-media-upload
+$uploaded_media = Twitter::uploadMedia([
+    'media' => $file,
+    'command' => 'APPEND',
+    'segment_index' => '0',
+    'media_id' => $init_media->media_id_string
+]);
+
+// After a video has been uploaded it can take Twitter some time to process it before 
+// it can be used in a Tweet. A better approach than the one below would be to use a
+// queue (e.g. Redis), but this demonstrates the logic.
+$waits = 0;
+
+while($waits <= 3) {
+
+    // Check the status
+    $status_media = Twitter::uploadStatus([
+        'command' => 'STATUS',
+        'media_id' => $init_media->media_id,
+    ]);
+
+	// Check that the STATUS command is returning a valid state
+    if(isset($status_media->processing_info->state)) {
+
+        switch($status_media->processing_info->state) {
+            case 'succeeded':
+                $waits = 4; // break out of the while loop
+                break;
+            case 'failed':
+                throw new Exception('Video processing failed: '.$status_media->processing_info->error->message);
+            default:
+            	// Check how long Twitter tells us to wait for before checking the status again
+                $status_media->processing_info->check_after_secs;
+                
+                // Sleep for that amount of time
+                sleep($status_media->processing_info->check_after_secs);
+
+                // Increment the wait count (in this example, we'll wait 3 times before leaving the loop just in case Twitter breaks)
+                $waits++;
+        }
+
+    } else {
+        throw new Exception('There was an unknown error uploading your video');
+    }
+}
+
+// Now that Twitter has processed the video upload, let's send the Tweet
+$post_response = Twitter::postTweet([
+    'status' => $text,
+    'media_ids' => $final_media->media_id_string
+]);
+   
+            
 ```
 
 

@@ -1,4 +1,4 @@
-<?php namespace Thujohn\Twitter;
+<?php namespace Scottybo\Twitter;
 
 use RunTimeException;
 use Carbon\Carbon as Carbon;
@@ -6,19 +6,19 @@ use Illuminate\Session\Store as SessionStore;
 use Illuminate\Config\Repository as Config;
 use tmhOAuth;
 
-use Thujohn\Twitter\Traits\AccountTrait;
-use Thujohn\Twitter\Traits\BlockTrait;
-use Thujohn\Twitter\Traits\DirectMessageTrait;
-use Thujohn\Twitter\Traits\FavoriteTrait;
-use Thujohn\Twitter\Traits\FriendshipTrait;
-use Thujohn\Twitter\Traits\GeoTrait;
-use Thujohn\Twitter\Traits\HelpTrait;
-use Thujohn\Twitter\Traits\ListTrait;
-use Thujohn\Twitter\Traits\MediaTrait;
-use Thujohn\Twitter\Traits\SearchTrait;
-use Thujohn\Twitter\Traits\StatusTrait;
-use Thujohn\Twitter\Traits\TrendTrait;
-use Thujohn\Twitter\Traits\UserTrait;
+use Scottybo\Twitter\Traits\AccountTrait;
+use Scottybo\Twitter\Traits\BlockTrait;
+use Scottybo\Twitter\Traits\DirectMessageTrait;
+use Scottybo\Twitter\Traits\FavoriteTrait;
+use Scottybo\Twitter\Traits\FriendshipTrait;
+use Scottybo\Twitter\Traits\GeoTrait;
+use Scottybo\Twitter\Traits\HelpTrait;
+use Scottybo\Twitter\Traits\ListTrait;
+use Scottybo\Twitter\Traits\MediaTrait;
+use Scottybo\Twitter\Traits\SearchTrait;
+use Scottybo\Twitter\Traits\StatusTrait;
+use Scottybo\Twitter\Traits\TrendTrait;
+use Scottybo\Twitter\Traits\UserTrait;
 
 class Twitter extends tmhOAuth {
 
@@ -231,7 +231,8 @@ class Twitter extends tmhOAuth {
 	{
 		$this->config['host'] = $this->tconfig['API_URL'];
 
-		if ($multipart)
+		// If the $name is media/upload we should always set the host to the UPLOAD_URL (including on GET requests)
+		if ($multipart || $name == 'media/upload')
 		{
 			$this->config['host'] = $this->tconfig['UPLOAD_URL'];
 		}
