@@ -287,8 +287,8 @@ class Twitter extends tmhOAuth {
 				}
 				else
 				{
-					$error_code = $response['code'];
-					$error_msg  = $response['error'];
+					$error_code = '406';
+					$error_msg  = $_response['error'];
 				}
 			}
 			else
