@@ -2,7 +2,7 @@
 
 This is a forked version of thujon/twitter, with the initial goal of adding support for video media uploads.
 
-Twitter API for Laravel 4/5
+Twitter API for Laravel 6.
 
 You need to create an application and create your access token in the [Application Management](https://apps.twitter.com/).
 
