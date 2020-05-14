@@ -1,7 +1,7 @@
 {
     "name": "scottybo/twitter",
     "description": "Twitter API for Laravel",
-	"keywords": ["twitter", "laravel", "laravel4", "laravel5", "laravel6"],
+	"keywords": ["twitter", "laravel", "laravel4", "laravel5", "laravel6", "laravel7"],
     "license": "MIT",
     "authors": [
         {
@@ -11,7 +11,7 @@
     ],
     "require": {
         "php": "^7.2",
-        "illuminate/support": "6.*",
+        "illuminate/support": "7.*",
         "themattharris/tmhoauth": "0.8.4"
     },
     "autoload": {
