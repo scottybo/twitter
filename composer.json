@@ -19,5 +19,15 @@
             "Scottybo\\Twitter": "src/"
         }
     },
+    "extra": {
+        "laravel": {
+            "providers": [
+                "Scottybo\\Twitter\\TwitterServiceProvider"
+            ],
+	    "aliases": {
+        	"Twitter": "Scottybo\\Twitter\\Facades\\Twitter"
+	    }
+        }
+    },	
     "minimum-stability": "stable"
 }
